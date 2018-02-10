@@ -8,8 +8,7 @@ class Ball {
   img = null; // ボール画像
 
   constructor( x,y,radius: number ) {
-    this.x = x;
-    this.y = y;
+    this.moveTo( x,y );
     this.radius = radius;
   }
 
@@ -20,7 +19,61 @@ class Ball {
   getHeight(): number {
     return this.radius * 2;
   }
+
+  moveTo( x,y: number ) {
+    this.x = x;
+    this.y = y;
+  }
+
+  draw( ctx: CanvasRenderingContext2D ): void {
+    if ( this.img ) {
+        ctx.drawImage( 
+          this.img,
+          this.x - this.getWidth() / 2,
+          this.y - this.getHeight() / 2,
+          this.getWidth(),
+          this.getHeight()
+        );
+    }
+  }
 }
+
+enum Position {
+  FW,
+  MF,
+  DF,
+  GK
+}
+
+class Player {
+  x: number;  // 中心X座標
+  y: number;  // 中心Y座標
+
+  name: string; // 選手名
+  face_url: string; // 顔画像URL（使えるといいな）
+
+  postion: Position;  // ポジション
+
+  uniform_number: number;  // 背番号
+
+  constructor() {}
+
+  moveTo( x,y: number ): void {
+    this.x = x;
+    this.y = y;
+  }
+
+  draw( ctx: CanvasRenderingContext2D ): void {
+    const PLAYER_RADIUS = 25;
+    ctx.save();
+    ctx.translate( this.x,this.y );
+    ctx.fillStyle = 'red';
+    ctx.arc(0,0,PLAYER_RADIUS,0,Math.PI * 2,false);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 
 @Component({
   selector: 'app-soccer-field',
@@ -28,6 +81,8 @@ class Ball {
   styleUrls: ['./soccer-field.component.css']
 })
 export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
+
+  @ViewChild('myCanvas') myCanvas;
 
   canvasWidth = 600;
   canvasHeight = 400;
@@ -38,9 +93,14 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   soccerBall = new Ball( 100,100,20 );
 
-  @ViewChild('myCanvas') myCanvas;
+  player = new Player();
 
-  constructor() { }
+  constructor() {
+    this.player.moveTo( 200,200 );
+    this.player.name = '上杉謙信';
+    this.player.postion = Position.FW;
+    this.player.uniform_number = 9;
+  }
 
   ngOnInit() {
   }
@@ -79,22 +139,26 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
       ctx.fillStyle = this.grassPattern;
       ctx.fillRect( 10, 10, this.canvasWidth - 20, this.canvasHeight - 20);
 
+      // player
+      this.player.draw( ctx );
+
       // soccer ball
-      this.drawBall( ctx );
+      this.soccerBall.draw( ctx );
     }
   }
-
+/*
   drawBall(ctx): void {
-/*    const BALL_WIDTH = 40;
-    const BALL_HEIGHT = 40;
-*/
     if ( this.soccerBall.img ) {
         ctx.drawImage( this.soccerBall.img, this.soccerBall.x - (this.soccerBall.radius * 2) / 2, this.soccerBall.y - (this.soccerBall.radius * 2) / 2, (this.soccerBall.radius * 2),(this.soccerBall.radius * 2));
     }
   }
+*/
 
   canvasClick(e): void {
     console.log('click');
+
+    const rect = e.target.getBoundingClientRect();
+    this.soccerBall.moveTo( e.clientX - rect.left, e.clientY - rect.top );
   }
 
   canvasMouseDown(e): void {
