@@ -6,17 +6,23 @@ import {MatButtonModule, MatCheckboxModule} from '@angular/material';
 
 
 import { AppComponent } from './app.component';
+import { SoccerFieldComponent } from './soccer-field/soccer-field.component';
+import { AboutComponent } from './about/about.component';
+import { AppRoutingModule } from './/app-routing.module';
 
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    SoccerFieldComponent,
+    AboutComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     MatButtonModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]
