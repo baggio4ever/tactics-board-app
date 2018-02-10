@@ -1,3 +1,13 @@
-<p>
-  soccer-field works!
-</p>
+<div>
+  <canvas #myCanvas [width]="canvasWidth" [height]="canvasHeight" tabindex="0"
+      (click)="canvasClick($event)" 
+      (mousedown)="canvasMouseDown($event)" 
+      (mouseup)="canvasMouseUp($event)"
+      (mouseover)="canvasMouseOver()"
+      (mouseout)="canvasMouseOut()"
+      (mousemove)="canvasMouseMove($event)"
+      (keyup)="canvasKeyUp($event)"
+      (keypress)="canvasKeyPress($event)"
+      (keydown)="canvasKeyDown($event)">
+  </canvas>
+</div>
