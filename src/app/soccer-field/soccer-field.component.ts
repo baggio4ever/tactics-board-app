@@ -64,16 +64,110 @@ class Player {
   }
 
   draw( ctx: CanvasRenderingContext2D ): void {
-    const PLAYER_RADIUS = 25;
+    const PLAYER_RADIUS = 23;
     ctx.save();
+
     ctx.translate( this.x,this.y );
+
+    ctx.beginPath();
     ctx.fillStyle = 'red';
     ctx.arc(0,0,PLAYER_RADIUS,0,Math.PI * 2,false);
     ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = '#A22';
+    ctx.arc(0,0,PLAYER_RADIUS-3,0,Math.PI * 2,false);
+    ctx.fill();
+
     ctx.restore();
   }
 }
 
+const CANVAS_WIDTH = 600;   // デフォルト値
+const CANVAS_HEIGHT = 400;  // デフォルト値
+
+const FORMATION_GRID_X = Math.round((CANVAS_WIDTH/2)/5);
+const FORMATION_GRID_Y = Math.round( CANVAS_HEIGHT/5 );
+
+const player_list = [
+  {
+    x: FORMATION_GRID_X * 1,
+    y: (CANVAS_HEIGHT/2),
+    name:'B',
+    position:Position.GK,
+    unifom_number:1
+  },
+  {
+    x: FORMATION_GRID_X * 2,
+    y: FORMATION_GRID_Y * 1,
+    name:'C',
+    position:Position.DF,
+    unifom_number:2
+  },
+  {
+    x: FORMATION_GRID_X * 2,
+    y: FORMATION_GRID_Y * 2,
+    name:'A',
+    position:Position.DF,
+    unifom_number:3
+  },
+  {
+    x: FORMATION_GRID_X * 2,
+    y: FORMATION_GRID_Y * 3,
+    name:'A',
+    position:Position.DF,
+    unifom_number:4
+  },
+  {
+    x: FORMATION_GRID_X * 2,
+    y: FORMATION_GRID_Y * 4,
+    name:'A',
+    position:Position.DF,
+    unifom_number:5
+  },
+  {
+    x: FORMATION_GRID_X * 3,
+    y: FORMATION_GRID_Y * 1,
+    name:'A',
+    position:Position.MF,
+    unifom_number:6
+  },
+  {
+    x: FORMATION_GRID_X * 3,
+    y: FORMATION_GRID_Y * 2,
+    name:'A',
+    position:Position.MF,
+    unifom_number:7
+  },
+  {
+    x: FORMATION_GRID_X * 3,
+    y: FORMATION_GRID_Y * 3,
+    name:'A',
+    position:Position.MF,
+    unifom_number:8
+  },
+  {
+    x: FORMATION_GRID_X * 3,
+    y: FORMATION_GRID_Y * 4,
+    name:'A',
+    position:Position.MF,
+    unifom_number:9
+  },
+  {
+    x: FORMATION_GRID_X * 4,
+    y: FORMATION_GRID_Y * 2,
+    name:'A',
+    position:Position.FW,
+    unifom_number:10
+  },
+  {
+    x: FORMATION_GRID_X * 4,
+    y: FORMATION_GRID_Y * 3,
+    name:'A',
+    position:Position.FW,
+    unifom_number:11
+  },
+];
 
 @Component({
   selector: 'app-soccer-field',
@@ -84,8 +178,8 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   @ViewChild('myCanvas') myCanvas;
 
-  canvasWidth = 600;
-  canvasHeight = 400;
+  canvasWidth = CANVAS_WIDTH;
+  canvasHeight = CANVAS_HEIGHT;
   
   context: CanvasRenderingContext2D;
 
@@ -93,13 +187,20 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   soccerBall = new Ball( 100,100,20 );
 
-  player = new Player();
+  players = [];
 
   constructor() {
-    this.player.moveTo( 200,200 );
-    this.player.name = '上杉謙信';
-    this.player.postion = Position.FW;
-    this.player.uniform_number = 9;
+    this.players = [];
+    for( let i=0;i<player_list.length;i++ ) {
+      const pl = player_list[i];
+      const p = new Player();
+      p.moveTo( pl.x,pl.y );
+      p.name = pl.name;
+      p.postion = pl.position;
+      p.uniform_number = pl.unifom_number;
+
+      this.players.push(p);
+    }
   }
 
   ngOnInit() {
@@ -140,7 +241,10 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
       ctx.fillRect( 10, 10, this.canvasWidth - 20, this.canvasHeight - 20);
 
       // player
-      this.player.draw( ctx );
+      for( let i=0;i<this.players.length;i++ ) {
+        this.players[i].draw( ctx );
+      }
+//      this.player.draw( ctx );
 
       // soccer ball
       this.soccerBall.draw( ctx );
