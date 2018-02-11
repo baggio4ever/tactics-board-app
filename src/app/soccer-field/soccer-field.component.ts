@@ -1,5 +1,14 @@
 import { Component, OnInit, AfterViewInit, DoCheck, ViewChild } from '@angular/core';
 
+class SomeService {
+  // 2点間の距離
+  static getDistanceFromTo( x1,y1,x2,y2:number ): number {
+      const d = Math.floor( Math.sqrt( Math.pow( x1 - x2, 2 ) + Math.pow( y1 - y2, 2 ) ) );
+
+      return d;
+  }
+}
+
 class Ball {
   x: number;  // 中心X座標
   y: number;  // 中心Y座標
@@ -36,6 +45,24 @@ class Ball {
         );
     }
   }
+
+  includes( x,y: number ): boolean {
+    const d = SomeService.getDistanceFromTo(this.x, this.y, x, y);
+
+    return (this.radius > d);
+  }
+}
+
+// チョーク
+class Chalk {
+  color = 'black';
+  strokes = [];
+
+  constructor(color='white') {
+    this.color = color;
+  }
+
+  draw( ctx:CanvasRenderingContext2D ) {}
 }
 
 enum Position {
@@ -56,6 +83,8 @@ class Player {
 
   uniform_number: number;  // 背番号
 
+  radius = 23;  // 描画時の円の半径
+
   constructor() {}
 
   moveTo( x,y: number ): void {
@@ -64,22 +93,37 @@ class Player {
   }
 
   draw( ctx: CanvasRenderingContext2D ): void {
-    const PLAYER_RADIUS = 23;
+//    const PLAYER_RADIUS = 23;
     ctx.save();
 
     ctx.translate( this.x,this.y );
 
     ctx.beginPath();
     ctx.fillStyle = 'red';
-    ctx.arc(0,0,PLAYER_RADIUS,0,Math.PI * 2,false);
+    ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false);
     ctx.fill();
 
     ctx.beginPath();
     ctx.fillStyle = '#A22';
-    ctx.arc(0,0,PLAYER_RADIUS-3,0,Math.PI * 2,false);
+    ctx.arc(0, 0, this.radius-3, 0, Math.PI * 2, false);
     ctx.fill();
 
+    if( this.name !== '' ){
+      ctx.font = '9pt serif';
+      ctx.fillStyle = 'white';
+      const t = ctx.measureText( this.name );
+      ctx.fillText( this.name, -t.width / 2, this.radius + 14 );
+    }
+
     ctx.restore();
+  }
+
+  includes( x,y: number ): boolean {
+    // 2点間の距離
+//    const d = Math.floor( Math.sqrt( Math.pow( x-this.x,2 ) + Math.pow( y-this.y,2 ) ) );
+    const d = SomeService.getDistanceFromTo(this.x, this.y, x, y);
+
+    return (this.radius > d);
   }
 }
 
@@ -93,14 +137,14 @@ const player_list = [
   {
     x: FORMATION_GRID_X * 1,
     y: (CANVAS_HEIGHT/2),
-    name:'B',
+    name:'川口能活',
     position:Position.GK,
     unifom_number:1
   },
   {
     x: FORMATION_GRID_X * 2,
     y: FORMATION_GRID_Y * 1,
-    name:'C',
+    name:'井原正巳',
     position:Position.DF,
     unifom_number:2
   },
@@ -187,7 +231,9 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   soccerBall = new Ball( 100,100,20 );
 
-  players = [];
+  players:Player[] = [];
+
+  chalks:Chalk[] = [];
 
   constructor() {
     this.players = [];
