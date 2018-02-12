@@ -34,15 +34,26 @@ class Ball {
     this.y = y;
   }
 
-  draw( ctx: CanvasRenderingContext2D ): void {
+  draw( ctx: CanvasRenderingContext2D, isSelected: boolean ): void {
     if ( this.img ) {
-        ctx.drawImage( 
-          this.img,
-          this.x - this.getWidth() / 2,
-          this.y - this.getHeight() / 2,
-          this.getWidth(),
-          this.getHeight()
-        );
+      ctx.save();
+      
+      ctx.drawImage( 
+        this.img,
+        this.x - this.getWidth() / 2,
+        this.y - this.getHeight() / 2,
+        this.getWidth(),
+        this.getHeight()
+      );
+
+      if( isSelected ) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#F00';
+        ctx.lineWidth = 3;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
   }
 
@@ -92,19 +103,23 @@ class Player {
     this.y = y;
   }
 
-  draw( ctx: CanvasRenderingContext2D ): void {
+  draw( ctx: CanvasRenderingContext2D, isSelected: boolean ): void {
 //    const PLAYER_RADIUS = 23;
     ctx.save();
 
     ctx.translate( this.x,this.y );
 
     ctx.beginPath();
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = '#F00';
     ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.fillStyle = '#A22';
+    if( isSelected ) {
+      ctx.fillStyle = '#C77';
+    } else {
+      ctx.fillStyle = '#A22';
+    }
     ctx.arc(0, 0, this.radius-3, 0, Math.PI * 2, false);
     ctx.fill();
 
@@ -151,63 +166,63 @@ const player_list = [
   {
     x: FORMATION_GRID_X * 2,
     y: FORMATION_GRID_Y * 2,
-    name:'A',
+    name:'ロベルト・カルロス',
     position:Position.DF,
     unifom_number:3
   },
   {
     x: FORMATION_GRID_X * 2,
     y: FORMATION_GRID_Y * 3,
-    name:'A',
+    name:'パオロ・マルディーニ',
     position:Position.DF,
     unifom_number:4
   },
   {
     x: FORMATION_GRID_X * 2,
     y: FORMATION_GRID_Y * 4,
-    name:'A',
+    name:'ベッケンバウアー',
     position:Position.DF,
     unifom_number:5
   },
   {
     x: FORMATION_GRID_X * 3,
     y: FORMATION_GRID_Y * 1,
-    name:'A',
+    name:'ドゥンガ',
     position:Position.MF,
     unifom_number:6
   },
   {
     x: FORMATION_GRID_X * 3,
     y: FORMATION_GRID_Y * 2,
-    name:'A',
+    name:'中田英寿',
     position:Position.MF,
     unifom_number:7
   },
   {
     x: FORMATION_GRID_X * 3,
     y: FORMATION_GRID_Y * 3,
-    name:'A',
+    name:'名波浩',
     position:Position.MF,
     unifom_number:8
   },
   {
     x: FORMATION_GRID_X * 3,
     y: FORMATION_GRID_Y * 4,
-    name:'A',
+    name:'リオネル・メッシ',
     position:Position.MF,
     unifom_number:9
   },
   {
     x: FORMATION_GRID_X * 4,
     y: FORMATION_GRID_Y * 2,
-    name:'A',
+    name:'ロベルト・バッジョ',
     position:Position.FW,
     unifom_number:10
   },
   {
     x: FORMATION_GRID_X * 4,
     y: FORMATION_GRID_Y * 3,
-    name:'A',
+    name:'C・ロナウド',
     position:Position.FW,
     unifom_number:11
   },
@@ -234,6 +249,10 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
   players:Player[] = [];
 
   chalks:Chalk[] = [];
+
+  selectedBall:Ball = null;
+  selectedPlayers:Player[] = [];
+  selectedChalks:Chalk[] = [];
 
   constructor() {
     this.players = [];
@@ -288,12 +307,12 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
       // player
       for( let i=0;i<this.players.length;i++ ) {
-        this.players[i].draw( ctx );
+        this.players[i].draw( ctx,this.selectedPlayers.includes(this.players[i]) );
       }
 //      this.player.draw( ctx );
 
       // soccer ball
-      this.soccerBall.draw( ctx );
+      this.soccerBall.draw( ctx, (this.selectedBall == this.soccerBall ) );
     }
   }
 /*
@@ -303,6 +322,22 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     }
   }
 */
+  markObjects( x,y: number ) {
+    // ball
+    if( this.soccerBall.includes( x, y ) ) {
+      this.selectedBall = this.soccerBall;
+    } else {
+      this.selectedBall = null;
+    }
+
+    // players
+    this.selectedPlayers = [];
+    for( let i=0;i<this.players.length;i++ ) {
+      if( this.players[i].includes( x,y ) ) {
+        this.selectedPlayers.push( this.players[i] );
+      }
+    }
+  }
 
   canvasClick(e): void {
     console.log('click');
@@ -329,6 +364,9 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   canvasMouseMove(e): void {
     // console.log('mouse move');  イベントが頻発するのでコメント
+    const rect = e.target.getBoundingClientRect();
+//    this.soccerBall.moveTo( e.clientX - rect.left, e.clientY - rect.top );
+    this.markObjects( e.clientX - rect.left, e.clientY - rect.top );
   }
 
   canvasKeyUp(e): void {
