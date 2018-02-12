@@ -34,6 +34,11 @@ class Ball {
     this.y = y;
   }
 
+  offsetMoveTo( x,y: number ): void {
+    this.x += x;
+    this.y += y;
+  }
+
   draw( ctx: CanvasRenderingContext2D, isSelected,isHovered: boolean ): void {
     if ( this.img ) {
       ctx.save();
@@ -109,6 +114,11 @@ class Player {
   moveTo( x,y: number ): void {
     this.x = x;
     this.y = y;
+  }
+
+  offsetMoveTo( x,y: number ): void {
+    this.x += x;
+    this.y += y;
   }
 
   draw( ctx: CanvasRenderingContext2D, isSelected,isHovered: boolean ): void {
@@ -270,6 +280,9 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
   selectedPlayers:Player[] = [];
   selectedChalks:Chalk[] = [];
 
+  isMouseDown = false;
+  mouseDownStartPos = [0,0];
+
   constructor() {
     this.players = [];
     for( let i=0;i<player_list.length;i++ ) {
@@ -292,6 +305,13 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     return [x,y];
+  }
+
+  getOffsetFromStartPos(): [number,number] {
+    return [
+      this.currentMousePos[0]-this.mouseDownStartPos[0],
+      this.currentMousePos[1]-this.mouseDownStartPos[1]
+    ];
   }
 
   ngAfterViewInit() {
@@ -373,11 +393,16 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   canvasMouseDown(e): void {
     console.log('mouse down');
+
     this.markObjects( this.currentMousePos[0], this.currentMousePos[1] );
+    this.isMouseDown = true;
+    this.mouseDownStartPos = this.currentMousePos;
   }
 
   canvasMouseUp(e): void {
     console.log('mouse up');
+
+    this.isMouseDown = false;
   }
 
   canvasMouseOver(e): void {
@@ -392,6 +417,19 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     // console.log('mouse move');  イベントが頻発するのでコメント
     const xy = this.getLocalXY(e);
     this.currentMousePos = xy;
+
+    if(this.isMouseDown) {
+      const xy2 = this.getOffsetFromStartPos();
+      if( this.selectedBall !== null ) {
+        this.selectedBall.offsetMoveTo(xy2[0],xy2[1]);
+      }
+      if( this.selectedPlayers.length>0 ) {
+
+      }
+      if( this.selectedChalks.length>0 ) {
+
+      }
+    }
   }
 
   canvasKeyUp(e): void {
