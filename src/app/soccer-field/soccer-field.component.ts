@@ -34,7 +34,7 @@ class Ball {
     this.y = y;
   }
 
-  draw( ctx: CanvasRenderingContext2D, isSelected: boolean ): void {
+  draw( ctx: CanvasRenderingContext2D, isSelected,isHovered: boolean ): void {
     if ( this.img ) {
       ctx.save();
       
@@ -46,7 +46,7 @@ class Ball {
         this.getHeight()
       );
 
-      if( isSelected ) {
+      if( isHovered ) {
         ctx.beginPath();
         ctx.strokeStyle = '#F00';
         ctx.lineWidth = 3;
@@ -103,7 +103,7 @@ class Player {
     this.y = y;
   }
 
-  draw( ctx: CanvasRenderingContext2D, isSelected: boolean ): void {
+  draw( ctx: CanvasRenderingContext2D, isSelected,isHovered: boolean ): void {
 //    const PLAYER_RADIUS = 23;
     ctx.save();
 
@@ -115,7 +115,7 @@ class Player {
     ctx.fill();
 
     ctx.beginPath();
-    if( isSelected ) {
+    if( isHovered ) {
       ctx.fillStyle = '#C77';
     } else {
       ctx.fillStyle = '#A22';
@@ -250,6 +250,8 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   chalks:Chalk[] = [];
 
+  currentMousePos:[number,number] = [0,0];
+
   selectedBall:Ball = null;
   selectedPlayers:Player[] = [];
   selectedChalks:Chalk[] = [];
@@ -269,6 +271,13 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   ngOnInit() {
+  }
+
+  getLocalXY(e): [number,number] {
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    return [x,y];
   }
 
   ngAfterViewInit() {
@@ -307,21 +316,23 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
       // player
       for( let i=0;i<this.players.length;i++ ) {
-        this.players[i].draw( ctx,this.selectedPlayers.includes(this.players[i]) );
+        const p = this.players[i];
+        p.draw( 
+          ctx,
+          this.selectedPlayers.includes(p),
+          p.includes(this.currentMousePos[0], this.currentMousePos[1])
+        );
       }
-//      this.player.draw( ctx );
 
       // soccer ball
-      this.soccerBall.draw( ctx, (this.selectedBall == this.soccerBall ) );
+      this.soccerBall.draw(
+        ctx,
+        (this.selectedBall == this.soccerBall ),
+        this.soccerBall.includes( this.currentMousePos[0], this.currentMousePos[1] )
+      );
     }
   }
-/*
-  drawBall(ctx): void {
-    if ( this.soccerBall.img ) {
-        ctx.drawImage( this.soccerBall.img, this.soccerBall.x - (this.soccerBall.radius * 2) / 2, this.soccerBall.y - (this.soccerBall.radius * 2) / 2, (this.soccerBall.radius * 2),(this.soccerBall.radius * 2));
-    }
-  }
-*/
+
   markObjects( x,y: number ) {
     // ball
     if( this.soccerBall.includes( x, y ) ) {
@@ -332,7 +343,7 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
     // players
     this.selectedPlayers = [];
-    for( let i=0;i<this.players.length;i++ ) {
+    for( let i = 0; i < this.players.length; i++ ) {
       if( this.players[i].includes( x,y ) ) {
         this.selectedPlayers.push( this.players[i] );
       }
@@ -340,10 +351,11 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   canvasClick(e): void {
-    console.log('click');
-
-    const rect = e.target.getBoundingClientRect();
-    this.soccerBall.moveTo( e.clientX - rect.left, e.clientY - rect.top );
+//    console.log('click');
+    const xy = this.getLocalXY(e);
+//    const rect = e.target.getBoundingClientRect();
+//    this.soccerBall.moveTo( e.clientX - rect.left, e.clientY - rect.top );
+    this.soccerBall.moveTo( xy[0], xy[1] );
   }
 
   canvasMouseDown(e): void {
@@ -363,10 +375,13 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   canvasMouseMove(e): void {
+    const xy = this.getLocalXY(e);
     // console.log('mouse move');  イベントが頻発するのでコメント
-    const rect = e.target.getBoundingClientRect();
+//    const rect = e.target.getBoundingClientRect();
 //    this.soccerBall.moveTo( e.clientX - rect.left, e.clientY - rect.top );
-    this.markObjects( e.clientX - rect.left, e.clientY - rect.top );
+//    this.markObjects( e.clientX - rect.left, e.clientY - rect.top );
+    this.currentMousePos = xy;
+    this.markObjects(xy[0],xy[1]);
   }
 
   canvasKeyUp(e): void {
