@@ -346,9 +346,7 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     if ( ctx ) {
       ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-      // 芝生パターン
-      ctx.fillStyle = this.grassPattern;
-      ctx.fillRect( 10, 10, this.canvasWidth - 20, this.canvasHeight - 20);
+      this.drawField(ctx);
 
       // player
       for( let i=0;i<this.players.length;i++ ) {
@@ -367,6 +365,53 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
         this.soccerBall.includes( this.currentMousePos[0], this.currentMousePos[1] )
       );
     }
+  }
+
+  drawField( ctx: CanvasRenderingContext2D ): void {
+      const OUTER_MARGIN = 10;
+
+      ctx.save();
+
+      ctx.translate( OUTER_MARGIN,OUTER_MARGIN );
+
+      // 芝生パターン
+      ctx.fillStyle = this.grassPattern;
+      ctx.fillRect(
+        0,
+        0,
+        this.canvasWidth - OUTER_MARGIN * 2,
+        this.canvasHeight - OUTER_MARGIN * 2
+      );
+
+      // 白線(枠)
+      const INSIDE_MARGIN = 10;
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeRect( 
+        INSIDE_MARGIN,
+        INSIDE_MARGIN,
+        this.canvasWidth - OUTER_MARGIN * 2 - INSIDE_MARGIN * 2, this.canvasHeight - OUTER_MARGIN * 2 - INSIDE_MARGIN * 2
+      );
+
+      const CORNER_RADIUS = 25;
+      // 白線(コーナー左上)
+      ctx.beginPath();
+      ctx.arc( INSIDE_MARGIN, INSIDE_MARGIN, CORNER_RADIUS, 0,Math.PI/2,false );
+      ctx.stroke();
+
+      // 白線(コーナー左下)
+      ctx.beginPath();
+      ctx.arc(
+        INSIDE_MARGIN,
+        this.canvasHeight - OUTER_MARGIN * 1 - INSIDE_MARGIN * 2,
+        CORNER_RADIUS,
+        0,
+        -Math.PI/2,
+        true
+      );
+      ctx.stroke();
+
+      ctx.restore();
   }
 
   markObjects( x,y: number ) {
