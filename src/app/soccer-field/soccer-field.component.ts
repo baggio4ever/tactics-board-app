@@ -87,6 +87,8 @@ class Chalk {
   }
 
   draw( ctx:CanvasRenderingContext2D ) {}
+
+  offsetMoveTo( x,y: number ): void {}
 }
 
 enum Position {
@@ -274,15 +276,15 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
   chalks:Chalk[] = [];
 
-  currentMousePos:[number,number] = [0,0];
+  currentMousePos = [0,0];
+  lastCurrentMousePos = [0,0];
 
   selectedBall:Ball = null;
   selectedPlayers:Player[] = [];
   selectedChalks:Chalk[] = [];
 
   isMouseDown = false;
-  mouseDownStartPos = [0,0];
-
+  
   constructor() {
     this.players = [];
     for( let i=0;i<player_list.length;i++ ) {
@@ -307,10 +309,10 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     return [x,y];
   }
 
-  getOffsetFromStartPos(): [number,number] {
+  getOffsetFromLastPos(): [number,number] {
     return [
-      this.currentMousePos[0]-this.mouseDownStartPos[0],
-      this.currentMousePos[1]-this.mouseDownStartPos[1]
+      this.currentMousePos[0]-this.lastCurrentMousePos[0],
+      this.currentMousePos[1]-this.lastCurrentMousePos[1]
     ];
   }
 
@@ -396,7 +398,7 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
 
     this.markObjects( this.currentMousePos[0], this.currentMousePos[1] );
     this.isMouseDown = true;
-    this.mouseDownStartPos = this.currentMousePos;
+    this.lastCurrentMousePos = this.currentMousePos;
   }
 
   canvasMouseUp(e): void {
@@ -419,16 +421,24 @@ export class SoccerFieldComponent implements OnInit, AfterViewInit, DoCheck {
     this.currentMousePos = xy;
 
     if(this.isMouseDown) {
-      const xy2 = this.getOffsetFromStartPos();
+      const xy2 = this.getOffsetFromLastPos();
+
       if( this.selectedBall !== null ) {
         this.selectedBall.offsetMoveTo(xy2[0],xy2[1]);
       }
       if( this.selectedPlayers.length>0 ) {
-
+        for( let i=0; i<this.selectedPlayers.length; i++ ) {
+          const p = this.selectedPlayers[i];
+          p.offsetMoveTo( xy2[0], xy2[1] );
+        }
       }
       if( this.selectedChalks.length>0 ) {
-
+        for( let i=0; i<this.selectedChalks.length; i++ ) {
+          const c = this.selectedChalks[i];
+          c.offsetMoveTo( xy2[0], xy2[1] );
+        }
       }
+      this.lastCurrentMousePos = this.currentMousePos;
     }
   }
 
